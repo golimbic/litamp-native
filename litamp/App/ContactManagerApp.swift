@@ -3,11 +3,11 @@ import SwiftUI
 
 @main
 struct ContactManagerApp: App {
-    var container: ModelContainer
+    let container: ModelContainer
 
     var body: some Scene {
         WindowGroup {
-            ContactListView(modelContext: container.mainContext)
+            ContactListView()
         }
         .modelContainer(container)
     }

@@ -2,7 +2,7 @@ import SwiftData
 import SwiftUI
 
 struct ContactDetailView: View {
-    @Environment(\.modelContext) private var context
+    @State private var showEditContactView = false
     var checkIns: [CheckIn] = []
     var contact: Contact
 
@@ -46,6 +46,14 @@ struct ContactDetailView: View {
         }
         .padding()
         .navigationTitle("Contact Details")
+        .toolbar {
+            Button("Edit") {
+                showEditContactView = true
+            }
+        }
+        .sheet(isPresented: $showEditContactView) {
+            ContactEditView(contact: contact)
+        }
     }
 }
 

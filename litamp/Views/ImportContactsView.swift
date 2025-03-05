@@ -1,5 +1,5 @@
-import SwiftUI
 import Contacts
+import SwiftUI
 
 struct ImportContactsView: View {
     @State private var contacts: [CNContact] = []
@@ -11,23 +11,32 @@ struct ImportContactsView: View {
                 VStack(alignment: .leading) {
                     Text(contact.givenName + " " + contact.familyName)
                         .font(.headline)
-                    if let phoneNumber = contact.phoneNumbers.first?.value.stringValue {
+                    if let phoneNumber = contact.phoneNumbers.first?.value
+                        .stringValue
+                    {
                         Text(phoneNumber)
                             .font(.subheadline)
                     }
-                    if let email = contact.emailAddresses.first?.value as String? {
+                    if let email = contact.emailAddresses.first?.value
+                        as String?
+                    {
                         Text(email)
                             .font(.subheadline)
                     }
                 }
             }
             .navigationTitle("Import Contacts")
-            .navigationBarItems(trailing: Button("Import") {
-                isImporting = true
-                importContacts()
-            })
+            .navigationBarItems(
+                trailing: Button("Import") {
+                    isImporting = true
+                    importContacts()
+                }
+            )
             .alert(isPresented: $isImporting) {
-                Alert(title: Text("Importing Contacts"), message: Text("Contacts imported successfully!"), dismissButton: .default(Text("OK")))
+                Alert(
+                    title: Text("Importing Contacts"),
+                    message: Text("Contacts imported successfully!"),
+                    dismissButton: .default(Text("OK")))
             }
         }
     }
@@ -36,11 +45,16 @@ struct ImportContactsView: View {
         let store = CNContactStore()
         store.requestAccess(for: .contacts) { granted, error in
             if granted {
-                let keys = [CNContactGivenNameKey, CNContactFamilyNameKey, CNContactPhoneNumbersKey, CNContactEmailAddressesKey]
-                let request = CNContactFetchRequest(keysToFetch: keys as [CNKeyDescriptor])
-                
+                let keys = [
+                    CNContactGivenNameKey, CNContactFamilyNameKey,
+                    CNContactPhoneNumbersKey, CNContactEmailAddressesKey,
+                ]
+                let request = CNContactFetchRequest(
+                    keysToFetch: keys as [CNKeyDescriptor])
+
                 do {
-                    try store.enumerateContacts(with: request) { contact, stop in
+                    try store.enumerateContacts(with: request) {
+                        contact, stop in
                         contacts.append(contact)
                     }
                 } catch {

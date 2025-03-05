@@ -1,12 +1,19 @@
 import SwiftData
 import SwiftUI
 
-struct CreateContactView: View {
-    let saveContact: (Contact) -> Void
-    @Query private var rings: [Ring]
+struct ContactEditView: View {
     @Environment(\.dismiss) var dismiss
-    @State private var name: String = ""
-    @State private var selectedRing: Ring? = nil
+    @Environment(\.modelContext) private var modelContext
+    @State private var name: String
+    @State private var selectedRing: Ring?
+    var contact: Contact
+    @Query private var rings: [Ring]
+
+    init(contact: Contact) {
+        self.contact = contact
+        _name = State(initialValue: contact.name)
+        _selectedRing = State(initialValue: contact.ring)
+    }
 
     var body: some View {
         NavigationView {
@@ -24,11 +31,11 @@ struct CreateContactView: View {
                     }
                 }
 
-                Button(action: _saveContact) {
-                    Text("Save Contact")
+                Button(action: saveContact) {
+                    Text("Save Changes")
                 }
             }
-            .navigationTitle("Create Contact")
+            .navigationTitle("Edit Contact")
             .navigationBarItems(
                 leading: Button("Cancel") {
                     dismiss()
@@ -36,12 +43,14 @@ struct CreateContactView: View {
         }
     }
 
-    private func _saveContact() {
-        let contact = Contact(name: name)
+    private func saveContact() {
+        contact.name = name
         contact.ring = selectedRing
-        saveContact(contact)
-        // Logic to save the contact goes here
-        // This could involve calling a method in the ViewModel or Service layer
+        do {
+            try modelContext.save()
+        } catch {
+            print("Error updating task: \(error)")
+        }
         dismiss()
     }
 }
