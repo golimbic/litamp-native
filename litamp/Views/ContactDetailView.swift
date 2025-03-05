@@ -8,9 +8,6 @@ struct ContactDetailView: View {
 
     var body: some View {
         VStack(alignment: .leading) {
-            Text(contact.name)
-                .font(.largeTitle)
-                .padding(.bottom)
 
             Text("Check-in History")
                 .font(.headline)
@@ -45,7 +42,7 @@ struct ContactDetailView: View {
             Spacer()
         }
         .padding()
-        .navigationTitle("Contact Details")
+        .navigationTitle(contact.name)
         .toolbar {
             Button("Edit") {
                 showEditContactView = true
