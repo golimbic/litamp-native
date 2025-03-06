@@ -27,9 +27,6 @@ struct MeshGradientParameters {
         let seed = hash
         var random = SeededRandomGenerator(seed: seed)
 
-        // Log for debugging
-        print("Contact: \(combined), Hash: \(hash), Seed: \(seed)")
-
         // Define 3x3 base points (9 points)
         let basePoints: [SIMD2<Float>] = [
             [0.0, 0.0], [0.5, 0.0], [1.0, 0.0],  // Top row
@@ -54,52 +51,37 @@ struct MeshGradientParameters {
             )
         }
 
-        // Select 2 base colors from appleColors
+        // Select 3 colors from appleColors
         let colorCount = appleColors.count
         let index1 = Int(seed % UInt64(colorCount))
         let index2 = Int((seed / UInt64(colorCount)) % UInt64(colorCount))
+        let index3 = Int(
+            (seed / (UInt64(colorCount) * UInt64(colorCount)))
+                % UInt64(colorCount))
 
-        let baseColors = [
+        let selectedColors = [
             appleColors[index1],
             appleColors[index2],
+            appleColors[index3],
         ]
 
-        // Log base colors for verification
-        print("Base Colors: \(baseColors[0]), \(baseColors[1])")
-
-        // Generate 9 colors by tweaking the 2 base colors
-        let colors: [Color] = [
-            baseColors[0],  // Top row
-            tweakColor(baseColors[1], shift: random.next(in: -0.1...0.1)),
-            baseColors[1],
-
-            tweakColor(baseColors[1], shift: random.next(in: -0.1...0.1)),  // Middle row
-            baseColors[0],
-            tweakColor(baseColors[0], shift: random.next(in: -0.1...0.1)),
-
-            baseColors[1],  // Bottom row
-            tweakColor(baseColors[0], shift: random.next(in: -0.1...0.1)),
-            tweakColor(baseColors[1], shift: random.next(in: -0.1...0.1)),
+        // Create an initial array with 3 colors repeated to fill 9 slots
+        var colorArray: [Color] = [
+            selectedColors[0], selectedColors[1], selectedColors[2],
+            selectedColors[0], selectedColors[1], selectedColors[2],
+            selectedColors[0], selectedColors[1], selectedColors[2],
         ]
+
+        // Deterministically shuffle the array using Fisher-Yates
+        for i in (1..<colorArray.count).reversed() {
+            let j = Int(random.next(in: 0...Double(i)))  // Random index from 0 to i
+            colorArray.swapAt(i, j)
+        }
+
+        // Use the shuffled array for the 9 slots
+        let colors: [Color] = colorArray
 
         return MeshGradientParameters(points: points, colors: colors)
-    }
-
-    // Helper to tweak a color’s hue slightly
-    private static func tweakColor(_ color: Color, shift: Double) -> Color {
-        let uiColor = UIColor(color)
-        var hue: CGFloat = 0
-        var saturation: CGFloat = 0
-        var brightness: CGFloat = 0
-        var alpha: CGFloat = 0
-        uiColor.getHue(
-            &hue, saturation: &saturation, brightness: &brightness,
-            alpha: &alpha)
-
-        let newHue = (hue + CGFloat(shift)).truncatingRemainder(dividingBy: 1.0)
-        return Color(
-            hue: Double(newHue), saturation: Double(saturation),
-            brightness: Double(brightness))
     }
 }
 
@@ -152,8 +134,10 @@ struct ImportContactsView: View {
                     VStack(alignment: .leading) {
                         Text(contact.givenName + " " + contact.familyName).font(
                             .headline)
-                        Text(contact.organizationName)
-                            .font(.footnote)
+                        if !contact.organizationName.isEmpty {
+                            Text(contact.organizationName)
+                                .font(.footnote)
+                        }
                     }
                 }
             }
