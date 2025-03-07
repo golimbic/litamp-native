@@ -3,56 +3,58 @@ import SwiftUI
 
 struct ContactListView: View {
     @Environment(\.modelContext) private var modelContext
-    @Query(filter: #Predicate<Contact> { contact in contact.ring == nil })
-    private
-        var contactsWithoutRing: [Contact]
-    @Query private var rings: [Ring]
+    @Query private var contacts: [Contact]
     @State private var showCreateContactView = false
     @State private var showImportContactsView = false
 
     var body: some View {
         NavigationView {
+
             List {
-                Section(header: Text("No ring")) {
-                    ForEach(contactsWithoutRing) { contact in
-                        NavigationLink(
-                            destination: ContactDetailView(contact: contact)
-                        ) {
-                            Text(contact.name)
+                if contacts.isEmpty {
+                    ContentUnavailableView {
+                        Label("No friends", systemImage: "person.3.fill")
+                            .symbolRenderingMode(.hierarchical)
+                    } description: {
+                        Text("Your contacts will appear here.")
+                    } actions: {
+                        HStack(alignment: .center, spacing: 10) {
+                            Button("Add New", action: {
+                                showCreateContactView = true
+                            })
+                            .buttonStyle(.bordered)
+                            Button("Import Contacts", action: {
+                                showImportContactsView = true
+                            })
+                            .buttonStyle(.borderedProminent)
                         }
-                    }
-                    .onDelete(perform: deleteContacts)
-                }
-                ForEach(rings) { ring in
-                    Section(header: Text(ring.name)) {
-                        ForEach(ring.contacts) { contact in
-                            NavigationLink(
-                                destination: ContactDetailView(contact: contact)
-                            ) {
-                                Text(contact.name)
-                            }
-                        }
-                        .onDelete { indexSet in
-                            deleteContacts(at: indexSet, in: ring)
-                        }
+                        .controlSize(.regular)
                     }
                 }
+                ForEach(contacts) { contact in
+                    NavigationLink(
+                        destination: ContactDetailView(contact: contact)
+                    ) {
+                        Text(contact.name)
+                    }
+                }
+                .onDelete(perform: deleteContacts)
             }
-            .navigationTitle("Contacts")
-            .navigationBarItems(
-                trailing: HStack {
-                    Button(action: {
-                        showCreateContactView = true
-                    }) {
-                        Image(systemName: "plus")
-                    }
-                    Button(action: {
-                        showImportContactsView = true
-                    }) {
-                        Image(systemName: "square.and.arrow.down")
-                    }
-                }
-            )
+            .navigationTitle("Personas")
+            //            .navigationBarItems(
+            //                trailing: HStack {
+            //                    Button(action: {
+            //                        showCreateContactView = true
+            //                    }) {
+            //                        Image(systemName: "plus")
+            //                    }
+            //                    Button(action: {
+            //                        showImportContactsView = true
+            //                    }) {
+            //                        Image(systemName: "square.and.arrow.down")
+            //                    }
+            //                }
+            //            )
             .sheet(isPresented: $showCreateContactView) {
                 CreateContactView(saveContact: modelContext.insert)
             }
@@ -65,16 +67,13 @@ struct ContactListView: View {
     // Function to delete items
     private func deleteContacts(at offsets: IndexSet) {
         offsets.forEach { index in
-            let itemToDelete = contactsWithoutRing[index]
+            let itemToDelete = contacts[index]
             modelContext.delete(itemToDelete)  // Delete from modelContext
         }
         // Changes are saved automatically if autoSave is enabled
     }
+}
 
-    private func deleteContacts(at offsets: IndexSet, in ring: Ring) {
-        for index in offsets {
-            let contact = ring.contacts[index]
-            modelContext.delete(contact)
-        }
-    }
+#Preview {
+    ContactListView()
 }
