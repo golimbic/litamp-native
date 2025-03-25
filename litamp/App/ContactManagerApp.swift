@@ -7,7 +7,7 @@ struct ContactManagerApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContactListView()
+            RingListView()
         }
         .modelContainer(container)
     }

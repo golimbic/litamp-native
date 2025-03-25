@@ -6,55 +6,27 @@ struct ContactListView: View {
     @Query private var contacts: [Contact]
     @State private var showCreateContactView = false
     @State private var showImportContactsView = false
+    @State private var expandedSection = true
 
     var body: some View {
         NavigationView {
-
             List {
-                if contacts.isEmpty {
-                    ContentUnavailableView {
-                        Label("No friends", systemImage: "person.3.fill")
-                            .symbolRenderingMode(.hierarchical)
-                    } description: {
-                        Text("Your contacts will appear here.")
-                    } actions: {
-                        HStack(alignment: .center, spacing: 10) {
-                            Button("Add New", action: {
-                                showCreateContactView = true
-                            })
-                            .buttonStyle(.bordered)
-                            Button("Import Contacts", action: {
-                                showImportContactsView = true
-                            })
-                            .buttonStyle(.borderedProminent)
+                    if contacts.isEmpty {
+                        ContactListEmptyView(
+                            showCreateContactView: $showCreateContactView,
+                            showImportContactsView: $showImportContactsView
+                        )
+                    }
+                    ForEach(contacts) { contact in
+                        NavigationLink(
+                            destination: ContactDetailView(contact: contact)
+                        ) {
+                            Text(contact.name)
                         }
-                        .controlSize(.regular)
                     }
-                }
-                ForEach(contacts) { contact in
-                    NavigationLink(
-                        destination: ContactDetailView(contact: contact)
-                    ) {
-                        Text(contact.name)
-                    }
-                }
-                .onDelete(perform: deleteContacts)
+                    .onDelete(perform: deleteContacts)
             }
-            .navigationTitle("Personas")
-            //            .navigationBarItems(
-            //                trailing: HStack {
-            //                    Button(action: {
-            //                        showCreateContactView = true
-            //                    }) {
-            //                        Image(systemName: "plus")
-            //                    }
-            //                    Button(action: {
-            //                        showImportContactsView = true
-            //                    }) {
-            //                        Image(systemName: "square.and.arrow.down")
-            //                    }
-            //                }
-            //            )
+            .navigationTitle("Friends")
             .sheet(isPresented: $showCreateContactView) {
                 CreateContactView(saveContact: modelContext.insert)
             }
@@ -74,6 +46,15 @@ struct ContactListView: View {
     }
 }
 
-#Preview {
+#Preview("Empty") {
     ContactListView()
+}
+
+#Preview("Has contacts") {
+    let config = ModelConfiguration(isStoredInMemoryOnly: true)
+    let container = try! ModelContainer(
+        for: Contact.self, configurations: config)
+    container.mainContext.insert(Contact(name: "Steve Jobs"))
+    return ContactListView()
+        .modelContainer(container)
 }
