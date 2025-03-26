@@ -3,7 +3,8 @@ import SwiftUI
 
 struct RingListView: View {
     @Environment(\.modelContext) private var modelContext
-    @Query private var rings: [Ring]
+    @Query(sort: \Ring.level, order: .forward)
+    private var rings: [Ring]
     @State private var showCreateRingView = false
     @State private var showCreateSuggestedRingsView = false
 
@@ -28,10 +29,13 @@ struct RingListView: View {
             }
             .navigationTitle("Rings")
             .sheet(isPresented: $showCreateRingView) {
+
                 CreateRingView()
             }
             .sheet(isPresented: $showCreateSuggestedRingsView) {
-                CreateSuggestedRingsView()
+                NavigationStack {
+                    CreateSuggestedRingsView()
+                }
             }
         }
     }
