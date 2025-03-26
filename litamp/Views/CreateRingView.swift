@@ -26,18 +26,11 @@ struct CreateRingView: View {
     private var canCreate: Bool {
         ringWithSameLevel == nil && ringWithSameName == nil
     }
+    // Focus on the name field when the view appears
+    @FocusState private var isNameFocused: Bool
     var body: some View {
         NavigationStack {
             Form {
-                Section {
-                    TextField("Name", text: $name)
-                    if ringWithSameName != nil {
-                        Text(
-                            "Ring with the same name already exists: \(ringWithSameName!.name)"
-                        )
-                        .foregroundColor(.red)
-                    }
-                }
                 Section {
                     Stepper(
                         "Level: \(level)",
@@ -46,30 +39,41 @@ struct CreateRingView: View {
                     )
                     if ringWithSameLevel != nil {
                         Text(
-                            "Ring with the same level already exists: \(ringWithSameLevel!.name)"
+                            "\(ringWithSameLevel!.name) ring has the same level"
                         )
                         .foregroundColor(.red)
                     }
                 }
                 Section {
-                    Button(
-                        "Create",
-                        action: createRing
-                    )
-                    .buttonStyle(.borderedProminent)
-                    .disabled(!canCreate)
+                    TextField("Name", text: $name)
+                        .focused($isNameFocused)
+                        .submitLabel(.done)
+                        .onSubmit {
+                            if canCreate {
+                                createRing()
+                            }
+                        }
+                    if ringWithSameName != nil {
+                        Text(
+                            "\(ringWithSameName!.name) already exists"
+                        )
+                        .foregroundColor(.red)
+                    }
                 }
             }
             .navigationTitle("Create Ring")
             .navigationBarTitleDisplayMode(.inline)
-            .presentationDetents([.medium])
             .presentationDragIndicator(.visible)
             .presentationBackground(.bar)
+        }
+        .onAppear {
+            isNameFocused = true
         }
     }
 
     private func createRing() {
-        let ring = Ring(name: name, level: level)
+        let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        let ring = Ring(name: trimmedName, level: level)
         modelContext.insert(ring)
         dismiss()
     }
