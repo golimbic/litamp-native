@@ -22,7 +22,13 @@ struct RingListView: View {
                     NavigationLink(
                         destination: RingDetailView(ring: ring)
                     ) {
-                        Text(ring.name)
+                        VStack(alignment: .leading) {
+                            Text(ring.name)
+                                .font(.headline)
+                            Text("Level: \(ring.level)")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
                     }
                 }
                 .onDelete(perform: deleteRings)
@@ -35,6 +41,15 @@ struct RingListView: View {
             .sheet(isPresented: $showCreateSuggestedRingsView) {
                 NavigationStack {
                     CreateSuggestedRingsView()
+                }
+            }
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    Button(
+                        action: { showCreateRingView = true }
+                    ) {
+                        Label("Add New", systemImage: "plus")
+                    }
                 }
             }
         }
